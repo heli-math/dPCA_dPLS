@@ -18,9 +18,9 @@ Parameters are estimated by the EM algorithm.
 ### utility
 
 This folder contains:
-- *utility_function_dPCA.r* contains the utitlity functions for dPCA model,
+- *utility_function_dPCA.R* contains the utitlity functions for dPCA model,
 including parameter generation and essential functions for the parameter estimation via EM algorithm;
-- *utility_function_dPLS.r* contains the utitlity functions for dPLS model.
+- *utility_function_dPLS.R* contains the utitlity functions for dPLS model.
 
 ### simu_all_dPCA.R
 
