@@ -1,7 +1,7 @@
-# **Dynamic Principal Components Modeling on Longitudinal Multi-omics Data**
+# **Probabilistic Principal Components Modeling on Longitudinal Multi-omics Data**
 
 This repository contains the R code for the simulation studies of the
-paper titled *Dynamic Principal Components Modeling on Longitudinal
+paper titled *Probabilistic Principal Components Models for Longitudinal
 Multi-omics Data*.
 
 The paper proposes two latent-variable models for longitudinal omics
