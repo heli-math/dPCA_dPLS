@@ -10,7 +10,8 @@ library(Matrix)
 
 arrID <- 1 ## local running
 # arrID <- as.numeric(Sys.getenv('SLURM_ARRAY_TASK_ID')) ## HPC running
-source('YOUR_DIRECTORY/utility_function_dPLS.R')
+# source('YOUR_DIRECTORY/utility/utility_function_dPLS.R')
+source('./R/github_all/utility/utility_function_dPLS.R')
 
 
 ## -----------------------------------------------------------------------

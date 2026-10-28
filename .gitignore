@@ -1,0 +1,30 @@
+# old drafts, not part of the release
+bin/
+
+# rendered README and local notes
+*.html
+PUSH_GUIDE.md
+
+# output of the scripts
+data_analysis/results_dPCA/
+data_analysis/results_dPLS/
+*.RData
+*.rda
+*.rds
+*.Rout
+slurm*.out
+## keep the example data
+!data_analysis/data/X_example.RData
+!data_analysis/data/Y_example.RData
+
+# R / RStudio
+.Rhistory
+.Rapp.history
+.RDataTmp
+.Rproj.user/
+*.Rproj
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
