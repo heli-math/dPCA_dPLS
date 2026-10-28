@@ -1,7 +1,6 @@
 rm(list=ls())
 
 
-library(ggplot2)
 library(dplyr)
 library(tidyverse)
 library(MASS)
@@ -156,9 +155,9 @@ for (v in 1:niter) {
     row.i.x <- ((i-1)*K*p+1):(i*K*p)
     row.i.y <- ((i-1)*K*q+1):(i*K*q)
     
-    dx <- x[row.i.x] - mu.x    # Kp x 1
-    dy <- y[row.i.y] - mu.y    # Kq x 1
-    dz <- rbind(dx, dy)        # K(p+q) x 1
+    dx <- x[row.i.x] - mu.x    # Kp * 1
+    dy <- y[row.i.y] - mu.y    # Kq * 1
+    dz <- rbind(dx, dy)        # K(p+q) * 1
     
     ## ====== E-step ======================================================
     
@@ -200,16 +199,16 @@ for (v in 1:niter) {
       xik <- X_long[X_long$ID==i & X_long$time==k, 'x'] %>% as.matrix()
       yik <- Y_long[Y_long$ID==i & Y_long$time==k, 'y'] %>% as.matrix()
       
-      ## SUM_TX: x_ik E[t_ik|x_i,y_i]'   (p x r)
+      ## SUM_TX: x_ik E[t_ik|x_i,y_i]'   (p * r)
       sum.t.prod.x.i <- sum.t.prod.x.i + xik %*% t(t.exp.i[row.k])
       
-      ## SUM_UY: y_ik E[u_ik|x_i,y_i]'   (q x r)
+      ## SUM_UY: y_ik E[u_ik|x_i,y_i]'   (q * r)
       sum.u.prod.y.i <- sum.u.prod.y.i + yik %*% t(u.exp.i[row.k])
       
-      ## SUM_TT_W: (k,k) diagonal block of tt.exp.i.joint  (r x r)
+      ## SUM_TT_W: (k,k) diagonal block of tt.exp.i.joint  (r * r)
       sum.tt.diag.W <- sum.tt.diag.W + tt.exp.i[row.k, row.k]
       
-      ## SUM_UU_V: (k,k) diagonal block of uu.exp.i.joint  (r x r)
+      ## SUM_UU_V: (k,k) diagonal block of uu.exp.i.joint  (r * r)
       sum.uu.diag.V <- sum.uu.diag.V + uu.exp.i[row.k, row.k]
     }
     

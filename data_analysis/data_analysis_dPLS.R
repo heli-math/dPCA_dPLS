@@ -8,26 +8,7 @@ library(Matrix)
 library(lme4)
 library(OmicsPLS)
 
-
-## Real data analysis with dPLS, illustrated on the example data X_example and Y_example.
-##
-## Steps:
-##   0. choose the number of components r = max(r_x, r_y), where r_x (r_y) is the
-##      number of PCs of X (Y) explaining >= 80% of the variance
-##   1. initial values by O2PLS + linear mixed model (LMM) on the joint scores
-##   2. fit the full model (H1) by the EM algorithm
-##   3. likelihood ratio tests (LRT) on the time slopes:
-##        H0_t:  beta_t1 = 0                     (df = r)
-##        H0_u:  beta_u1 = 0                     (df = r)
-##        H0_tu: beta_t1 = 0 and beta_u1 = 0     (df = 2r)
-##        (optional) beta_t1j = 0 and beta_u1j = 0 for each component j (df = 1)
-##      each null model is re-fitted by EM, started from the H1 estimates
-##
-## Input data format (same as X_example and Y_example, see generate_example_data.R):
-##   one row per subject and time point; column 'ID', column 'time' coded 1,...,K,
-##   all other columns are features. X and Y contain the same subjects and time points,
-##   every subject is observed at all K time points.
-
+##### PLEASE REPLACE THE DIRECTORY YOURSELF
 # source('YOUR_DIRECTORY/utility/utility_function_dPLS.R')
 source('./R/github_all/utility/utility_function_dPLS.R')
 load('./R/github_all/data_analysis/data/X_example.RData')
@@ -64,17 +45,6 @@ y <- as.vector(t(as.matrix(Y_wide[, features_y])))
 uid <- unique(X_wide$ID)
 
 
-## -----------------------------------------------------------------------
-## EM algorithm for dPLS
-##
-## x_ik = W t_ik + e_ik,  t_ik = beta_t0 + beta_t1 * k + b_i + a_i + g_ik
-## y_ik = V u_ik + f_ik,  u_ik = beta_u0 + beta_u1 * k + b_i + d_i + h_ik
-## init        : list(W, V, beta_t, beta_u, Sigb, Siga, Sigd, SigG, SigH, sig2E, sig2F)
-##               with beta_t = (beta_t0', beta_t1') and beta_u = (beta_u0', beta_u1')
-## fix_beta_t1 : logical (length 1 or r), TRUE fixes the X time slope of that component at 0
-## fix_beta_u1 : logical (length 1 or r), the same for Y
-## The log-likelihood is evaluated at the updated parameters of each iteration.
-## -----------------------------------------------------------------------
 EM_dPLS <- function(x, y, N, p, q, K, r, init,
                     fix_beta_t1 = FALSE, fix_beta_u1 = FALSE,
                     niter = 1e4, tol = 1e-3, label = "H1") {
@@ -96,8 +66,8 @@ EM_dPLS <- function(x, y, N, p, q, K, r, init,
   beta_t[r + which(fix_beta_t1)] <- 0
   beta_u[r + which(fix_beta_u1)] <- 0
 
-  X.mat <- matrix(x, nrow=K*p)   ## column i is x_i (Kp x N)
-  Y.mat <- matrix(y, nrow=K*q)   ## column i is y_i (Kq x N)
+  X.mat <- matrix(x, nrow=K*p)
+  Y.mat <- matrix(y, nrow=K*q)
   sum.xx <- sum(X.mat^2); sum.yy <- sum(Y.mat^2)
 
   ## joint covariance of (x_i, y_i)
@@ -112,7 +82,7 @@ EM_dPLS <- function(x, y, N, p, q, K, r, init,
            InV %*% Sig.u %*% t(InV) + diag(1,K) %x% (sig2F*diag(q)))
   }
 
-  ## observed-data log-likelihood
+  
   loglik <- function(W, V, beta_t, beta_u, Sigb, Siga, Sigd, SigG, SigH, sig2E, sig2F) {
     mu.x <- (diag(1,K) %x% W) %*% C %*% t(beta_t)
     mu.y <- (diag(1,K) %x% V) %*% C %*% t(beta_u)
@@ -156,21 +126,18 @@ EM_dPLS <- function(x, y, N, p, q, K, r, init,
     Sig.h.y  <- (diag(K) %x% SigH) %*% t(InV)
 
     ## ====== E-step (all subjects at once) ===============================
-    Dx <- X.mat - as.vector(mu.x)    ## Kp x N
-    Dy <- Y.mat - as.vector(mu.y)    ## Kq x N
-    Dz <- rbind(Dx, Dy)              ## K(p+q) x N
+    Dx <- X.mat - as.vector(mu.x)
+    Dy <- Y.mat - as.vector(mu.y)
+    Dz <- rbind(Dx, Dy)
 
-    ## t, u and b: joint conditioning on (x_i, y_i)
-    t.exp <- as.vector(mu.t) + Sig.t.xy %*% Sig.xy.all.inv %*% Dz   ## Kr x N
-    u.exp <- as.vector(mu.u) + Sig.u.xy %*% Sig.xy.all.inv %*% Dz   ## Kr x N
-    b.exp <- Sig.b.xy %*% Sig.xy.all.inv %*% Dz                     ## r x N
-    ## a and g: conditioning on x_i only; d and h: conditioning on y_i only
+    t.exp <- as.vector(mu.t) + Sig.t.xy %*% Sig.xy.all.inv %*% Dz
+    u.exp <- as.vector(mu.u) + Sig.u.xy %*% Sig.xy.all.inv %*% Dz
+    b.exp <- Sig.b.xy %*% Sig.xy.all.inv %*% Dz
     a.exp <- Sig.a.x %*% Sig.x.inv %*% Dx
     d.exp <- Sig.d.y %*% Sig.y.inv %*% Dy
     g.exp <- Sig.g.x %*% Sig.x.inv %*% Dx
     h.exp <- Sig.h.y %*% Sig.y.inv %*% Dy
 
-    ## conditional variances are the same for all subjects
     t.var.joint <- Sig.t - Sig.t.xy %*% Sig.xy.all.inv %*% t(Sig.t.xy)
     u.var.joint <- Sig.u - Sig.u.xy %*% Sig.xy.all.inv %*% t(Sig.u.xy)
     b.var <- Sigb - Sig.b.xy %*% Sig.xy.all.inv %*% t(Sig.b.xy)
@@ -180,7 +147,6 @@ EM_dPLS <- function(x, y, N, p, q, K, r, init,
     h.var <- (diag(K) %x% SigH) - Sig.h.y %*% Sig.y.inv %*% t(Sig.h.y)
 
     ## ====== M-step ======================================================
-    ## W: W_raw = SUM_TX %*% solve(SUM_TT_W);  V: V_raw = SUM_UY %*% solve(SUM_UU_V)
     sum.t.prod.x <- matrix(0, p, r);  sum.tt.diag.W <- matrix(0, r, r)
     sum.u.prod.y <- matrix(0, q, r);  sum.uu.diag.V <- matrix(0, r, r)
     for (k in 1:K) {
@@ -193,7 +159,6 @@ EM_dPLS <- function(x, y, N, p, q, K, r, init,
       sum.uu.diag.V <- sum.uu.diag.V + N*u.var.joint[row.k, row.k] + tcrossprod(u.exp[row.k, , drop=FALSE])
     }
 
-    ## sigma^2_e, sigma^2_f: E[||x_i - (I_K x W) t_i||^2 | x_i, y_i], using the current W and V
     WtW <- crossprod(InW); VtV <- crossprod(InV)
     sum.sigma.e.norm <- sum.xx - 2*sum(t.exp * (t(InW) %*% X.mat)) +
       sum(t.exp * (WtW %*% t.exp)) + N*sum(diag(WtW %*% t.var.joint))
@@ -205,8 +170,6 @@ EM_dPLS <- function(x, y, N, p, q, K, r, init,
     sig2E <- as.numeric(sum.sigma.e.norm / (N*K*p))
     sig2F <- as.numeric(sum.sigma.f.norm / (N*K*q))
 
-    ## beta_t1 from E[t_i - A b_i - A a_i], beta_u1 from E[u_i - A b_i - A d_i],
-    ## then the intercepts given the slopes; under H0 the constrained slopes stay at 0
     beta_t_1 <- (C.ginv %*% rowMeans(t.exp - A %*% b.exp - A %*% a.exp))[-(1:r)]
     beta_t_1[fix_beta_t1] <- 0
     beta_t_0 <- average_by_stride(rowMeans(t.exp) - B %*% beta_t_1, K, r)
@@ -246,8 +209,6 @@ EM_dPLS <- function(x, y, N, p, q, K, r, init,
   }
   if (!converged) warning(label, ": EM did not converge in ", niter, " iterations")
 
-  ## E(t_i | x_i, y_i) and E(u_i | x_i, y_i) in wide format (nrow = N*K, ncol = r),
-  ## with the final parameters
   InW <- diag(1,K) %x% W
   InV <- diag(1,K) %x% V
   mu.t <- C %*% t(beta_t);  mu.u <- C %*% t(beta_u)
@@ -296,17 +257,15 @@ print(cum_var_explained_x_y)
 
 ####################### stage 1: initial theta by O2PLS + LMM #######################
 
-## O2PLS on the two stacked (N*K) x p and (N*K) x q matrices, joint components only
+## O2PLS on the two stacked matrices, joint components only
 fit.o2m <- o2m(X=as.matrix(X_wide[, features_x]), Y=as.matrix(Y_wide[, features_y]),
                n = r, nx = 0, ny = 0)
 summary(fit.o2m)
-t. <- as.matrix(fit.o2m$Tt)   ## (N*K) x r
-u. <- as.matrix(fit.o2m$U)    ## (N*K) x r
-W. <- as.matrix(fit.o2m$W.)   ## p x r
-V. <- as.matrix(fit.o2m$C.)   ## q x r
+t. <- as.matrix(fit.o2m$Tt)
+u. <- as.matrix(fit.o2m$U)
+W. <- as.matrix(fit.o2m$W.)
+V. <- as.matrix(fit.o2m$C.)
 
-## make the largest (in absolute value) element of each loading positive,
-## flip the corresponding scores accordingly
 W <- align_sign(W.); V <- align_sign(V.)
 t <- t. %*% diag(sign(colSums(W * W.)), nrow=r)
 u <- u. %*% diag(sign(colSums(V * V.)), nrow=r)
@@ -329,7 +288,7 @@ for (pc in pc_cols) {
 e.matrix <- scale(as.matrix(X_wide[, features_x]), center = TRUE, scale = FALSE) - t %*% t(W)
 f.matrix <- scale(as.matrix(Y_wide[, features_y]), center = TRUE, scale = FALSE) - u %*% t(V)
 
-Sigb <- diag(rep(10, r), nrow=r) ## Sigb, Siga, Sigd are hard to initialize
+Sigb <- diag(rep(10, r), nrow=r)
 init_H1 <- list(
   W = W, V = V,
   beta_t = t(sapply(lmm_results_t, fixef)) %>% as.vector() %>% matrix(nrow=1), ## (beta_t0', beta_t1')

@@ -1,7 +1,6 @@
 rm(list=ls())
 
 
-library(ggplot2)
 library(dplyr)
 library(tidyverse)
 library(MASS)
@@ -134,7 +133,7 @@ for (v in 1:niter) {
     for (k in 1:K) {
       row.k <- ((k-1)*r+1):(k*r)
       xik <- X_long[X_long$ID==i & X_long$time==k, 'x'] %>% as.matrix()
-      sum.t.prod.x.i <- sum.t.prod.x.i + xik %*% t(t.exp.i[row.k])  ## p x r
+      sum.t.prod.x.i <- sum.t.prod.x.i + xik %*% t(t.exp.i[row.k])  ## p * r
       ## extract (k,k) diagonal r*r block of tt.exp.i and accumulate
       tt.block.kk <- tt.exp.i[row.k, row.k]   ## r*r block E[t_ik t_ik' | x_i]
       sum.tt.diag <- sum.tt.diag + tt.block.kk
@@ -162,7 +161,7 @@ for (v in 1:niter) {
   } ## end i loop
   
   #### ================= update parameters ================= ####
-  W_raw <- sum.t.prod.x %*% solve(sum.tt.diag)   ## p x r
+  W_raw <- sum.t.prod.x %*% solve(sum.tt.diag)   ## p * r
   W <- orth(W_raw, type = 'SVD')
   sigma.e <- sqrt(sum.sigma.e.norm / (N*K*p)) %>% as.numeric()
   sig2E <- sigma.e^2

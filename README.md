@@ -49,12 +49,11 @@ The code was tested with R 4.5.2 and the following packages:
 | tidyverse  | 2.0.0   | all scripts                |
 | MASS       | 7.3.65  | all scripts                |
 | Matrix     | 1.7.4   | all scripts                |
-| ggplot2    | 4.0.1   | simulation                 |
 | lme4       | 1.1.37  | data analysis              |
 | OmicsPLS   | 2.1.0   | data analysis (dPLS)       |
 
 ```r
-install.packages(c("dplyr", "tidyverse", "MASS", "Matrix", "ggplot2", "lme4", "OmicsPLS"))
+install.packages(c("dplyr", "tidyverse", "MASS", "Matrix", "lme4", "OmicsPLS"))
 ```
 
 

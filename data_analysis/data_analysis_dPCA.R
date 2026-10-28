@@ -7,22 +7,7 @@ library(MASS)
 library(Matrix)
 library(lme4)
 
-
-## Real data analysis with dPCA, illustrated on the example data X_example.
-##
-## Steps:
-##   0. choose the number of components r (cumulative variance explained >= 80%)
-##   1. initial values by PCA + linear mixed model (LMM) on the PC scores
-##   2. fit the full model (H1) by the EM algorithm
-##   3. likelihood ratio test (LRT) on the time slopes beta_1:
-##        H0:   beta_1 = 0                          (df = r)
-##        H0_j: beta_1j = 0 for component j = 1..r  (df = 1)
-##      each null model is re-fitted by EM, started from the H1 estimates
-##
-## Input data format (same as X_example, see generate_example_data.R):
-##   one row per subject and time point; column 'ID', column 'time' coded 1,...,K,
-##   all other columns are features. Every subject is observed at all K time points.
-
+##### PLEASE REPLACE THE DIRECTORY YOURSELF
 # source('YOUR_DIRECTORY/utility/utility_function_dPCA.R')
 source('./R/github_all/utility/utility_function_dPCA.R')
 load('./R/github_all/data_analysis/data/X_example.RData')
@@ -72,7 +57,7 @@ EM_dPCA <- function(x, N, p, K, r, init, fix_beta1 = FALSE,
   sig2E <- init$sig2E
   beta[r + which(fix_beta1)] <- 0
 
-  X.mat <- matrix(x, nrow=K*p)   ## column i is x_i (Kp x N)
+  X.mat <- matrix(x, nrow=K*p)   ## column i is x_i (Kp * N)
   sum.xx <- sum(X.mat^2)
 
   ## observed-data log-likelihood
@@ -105,10 +90,10 @@ EM_dPCA <- function(x, N, p, K, r, init, fix_beta1 = FALSE,
     Sig.g.x <- (diag(K) %x% SigG) %*% t(InW)      ## Cov(g_i, x_i)
 
     ####================= E-step (all subjects at once) =================####
-    D <- X.mat - as.vector(mu.x)                  ## x_i - mu.x, Kp x N
-    t.exp <- as.vector(mu.t) + Sig.t.x %*% Sig.x.inv %*% D   ## E(t_i | x_i), Kr x N
-    b.exp <- Sig.b.x %*% Sig.x.inv %*% D                     ## E(b_i | x_i), r x N
-    g.exp <- Sig.g.x %*% Sig.x.inv %*% D                     ## E(g_i | x_i), Kr x N
+    D <- X.mat - as.vector(mu.x)                  ## x_i - mu.x, Kp * N
+    t.exp <- as.vector(mu.t) + Sig.t.x %*% Sig.x.inv %*% D   ## E(t_i | x_i), Kr * N
+    b.exp <- Sig.b.x %*% Sig.x.inv %*% D                     ## E(b_i | x_i), r * N
+    g.exp <- Sig.g.x %*% Sig.x.inv %*% D                     ## E(g_i | x_i), Kr * N
 
     ## conditional variances are the same for all subjects
     t.var <- Sig.t - Sig.t.x %*% Sig.x.inv %*% t(Sig.t.x)
@@ -127,7 +112,7 @@ EM_dPCA <- function(x, N, p, K, r, init, fix_beta1 = FALSE,
       sum.tt.diag <- sum.tt.diag + N*t.var[row.k, row.k] + tcrossprod(t.exp[row.k, , drop=FALSE])
     }
 
-    ## sigma.e: sum_i E[||x_i - (I_K x W) t_i||^2 | x_i], using the current W
+    ## sigma.e: sum_i E[||x_i - (I_K * W) t_i||^2 | x_i], using the current W
     WtW <- crossprod(InW)
     sum.sigma.e.norm <- sum.xx - 2*sum(t.exp * (t(InW) %*% X.mat)) +
       sum(t.exp * (WtW %*% t.exp)) + N*sum(diag(WtW %*% t.var))
@@ -199,7 +184,7 @@ print(cum_var_explained)
 
 ####################### stage 1: initial theta by PCA + LMM #######################
 
-t. <- pca.all$x[, 1:r, drop=FALSE]   ## dim = (N*K) x r
+t. <- pca.all$x[, 1:r, drop=FALSE]   ## dim = (N*K) * r
 W. <- pca.all$rotation[, 1:r, drop=FALSE]
 
 ## make the largest (in absolute value) element of each loading positive,
